@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.net.*;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 
 public class TMP2NET implements Serializable {
@@ -41,7 +42,7 @@ public class TMP2NET implements Serializable {
 
 
     public TMP2NET(String message, String ip, int port, int height, int width, int r, int g, int b){
-        this.message = message;
+        this.message = message +" ";
         this.ip = ip;
         this.port = port;
         this.height = height;
@@ -90,27 +91,38 @@ public class TMP2NET implements Serializable {
         return b;
     }
 
-    public void sendMassage() throws IOException {
+    public void sendMassage() throws IOException, InterruptedException {
+        //create new DatagramSocket
         DatagramSocket ds = new DatagramSocket();
-        InetAddress ia = InetAddress.getByName(getIp());
-        int port = getPort();
-        byte [] data = new byte[getSize()*3];
-        byte []payload = createImagePayload(data);
-        fillPayloadMessage(payload,getR(),getG(),getB(),getMassage(),getWidth(),getHeight());
-        DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, port);
-        ds.send(dp);
+        DatagramPacket dp = this.createDatagramPacket();
+        //sendDatramPacket
+        while (true){
+            ds.send(dp);
+            TimeUnit.SECONDS.sleep((long) 0.3);
+        }
     }
 
-    public void sendColor() throws IOException {
+    public void sendMassageAnimation() throws IOException, InterruptedException {
+
         DatagramSocket ds = new DatagramSocket();
         InetAddress ia = InetAddress.getByName(getIp());
         int port = getPort();
         byte [] data = new byte[getSize()*3];
         byte []payload = createImagePayload(data);
-        fillPayloadColor(payload,getR(),getG(),getB());
-        DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, port);
-        System.out.println(data);
-        ds.send(dp);
+        int[][] massageArray = Letter.convertText(getMassage());
+
+        int shift = 0;
+        while (true){
+            fillPayloadMessage(payload,getR(),getG(),getB(),massageArray,getWidth(),getHeight());
+            DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, port);
+            if(shift == 10){
+                massageArray = shiftArrayLeft(massageArray);
+                shift = 0;
+            }
+            shift++;
+            ds.send(dp);
+            TimeUnit.SECONDS.sleep((long) 0.3);
+        }
     }
 
 
@@ -140,10 +152,9 @@ public class TMP2NET implements Serializable {
 
     
 
-    public static byte[] fillPayloadMessage (byte [] payload,int r,int g,int b,String message, int width , int height){
+    public static byte[] fillPayloadMessage (byte [] payload,int r,int g,int b,int[][]buchstaben, int width , int height){
 
         int i = 2;
-        int[][]buchstaben = Letter.convertText(message);
         printArray(buchstaben);
 
 
@@ -183,6 +194,56 @@ public class TMP2NET implements Serializable {
             System.out.println();
         }
         System.out.println();
+    }
+
+    public int[][] shiftArrayRight(int[][] buchstaben) {
+
+        int[][] shiftBuchstaben = new int[buchstaben.length][buchstaben[0].length];
+
+        for (int y = 0; y < buchstaben.length; y++) {
+            shiftBuchstaben[y][0] = buchstaben[y][buchstaben[0].length - 1];
+            for (int x = 1; x < buchstaben[0].length; x++) {
+                shiftBuchstaben[y][x] = buchstaben[y][x - 1];
+            }
+        }
+        return shiftBuchstaben;
+    }
+
+
+    public int[][] shiftArrayLeft(int[][] buchstaben) {
+
+        int[][] shiftBuchstaben = new int[buchstaben.length][buchstaben[0].length];
+
+        for (int y = 0; y < buchstaben.length; y++) {
+            shiftBuchstaben[y][buchstaben[0].length-1] = buchstaben[y][0];
+
+            for (int x = 1; x < buchstaben[0].length; x++) {
+                shiftBuchstaben[y][x-1] = buchstaben[y][x];
+            }
+        }
+        return shiftBuchstaben;
+    }
+
+    public DatagramPacket createDatagramPacket() throws UnknownHostException {
+        //get IP for TMP2Protocol
+        InetAddress ia = InetAddress.getByName(getIp());
+        //get Port for TMP2Protocol
+        int port = getPort();
+        //create new byte Array with the size of the Amount of Pixel(calculated with getSize) times 3 because one pixel
+        //has 3 values RGB
+        byte [] data = new byte[getSize()*3];
+        //create new payload byte Array
+        byte []payload = createImagePayload(data);
+        //fill payload with all relevant information
+        if(getMassage() == ""){
+            fillPayloadColor(payload,getR(),getG(),getB());
+        }else{
+            fillPayloadMessage(payload,getR(),getG(),getB(),Letter.convertText(getMassage()),getWidth(),getHeight());
+        }
+
+        //create Datagrampacket to send DatagramSocket
+        DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, port);
+        return dp;
     }
 
 }
