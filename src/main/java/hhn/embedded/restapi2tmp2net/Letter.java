@@ -259,15 +259,6 @@ public class Letter {
                         {1, 1, 1, 1}
                 };
                 return new Letter(4, letterArray);
-            case ' ':
-                letterArray = new int[][]{
-                        {0},
-                        {0},
-                        {0},
-                        {0},
-                        {0}
-                };
-                return new Letter(1, letterArray);
 
             default:
                 letterArray = new int[][]{
