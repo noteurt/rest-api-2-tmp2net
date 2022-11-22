@@ -1,88 +1,68 @@
 package hhn.embedded.restapi2tmp2net;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
 
 
-@RestController
-public class RestApiController {
+public class AnimationThread extends Thread {
 
-    private boolean Animation = false;
 
-    private AnimationThread animationThread = new AnimationThread();
+    private TMP2NET tmp2NET;
 
-    public RestApiController(){
-        animationThread.start();
+    private boolean running = true;
+    private boolean animation = false;
+
+
+
+    public AnimationThread() {
+        this.tmp2NET = new TMP2NET("","",1,1,1,0,0,0,false);
+    }
+
+    public void run() {
+        while(running){
+           if(animation){
+               try {
+                   sendMassageAnimation(tmp2NET);
+               } catch (IOException e) {
+                   throw new RuntimeException(e);
+               } catch (InterruptedException e) {
+                   throw new RuntimeException(e);
+               }
+               try {
+                   Thread.sleep(1000);
+               } catch (InterruptedException e) {
+                   throw new RuntimeException(e);
+               }
+           }
+        }
     }
 
 
-
-
-    @PostMapping(path = "/setMessage", consumes = {"application/json"})
-    public void sendMassageUDP(@RequestBody TMP2NET tmp2) throws Exception {
-        TMP2NET tmp2NET = new TMP2NET(tmp2.message, tmp2.getIp(), tmp2.port, tmp2.getHeight(), tmp2.getWidth(), tmp2.getR(), tmp2.getG(), tmp2.getB(), tmp2.isAnimation());
-        /*
-        Animation = false;
-        sendMassage(tmp2NET);
-        TimeUnit.SECONDS.sleep(1);
-        if (tmp2NET.isAnimation()) {
-            Animation = true;
+    public void setTmp2NET(TMP2NET tmp2NET) throws IOException, InterruptedException {
+        this.tmp2NET = tmp2NET;
+        animation = tmp2NET.isAnimation();
+        if(!animation){
             sendMassage(tmp2NET);
         }
-
-         */
-        //sendMassage(tmp2NET);
-        animationThread.setTmp2NET(tmp2NET);
     }
 
-
     public void sendMassage(TMP2NET tmp2NET) throws IOException, InterruptedException {
-
-        //Animation = false;
         DatagramSocket ds = new DatagramSocket();
         DatagramPacket dp = createDatagramPacket(tmp2NET);
         ds.send(dp);
-
-        /*
-
-        if (tmp2NET.isAnimation()) {
-
-            InetAddress ia = InetAddress.getByName(tmp2NET.getIp());
-            int port = tmp2NET.getPort();
-            byte[] data = new byte[tmp2NET.getSize() * 3];
-            byte[] payload = createImagePayload(data);
-            int[][] massageArray = Letter.convertText(tmp2NET.getMassage());
-
-            while (Animation) {
-                massageArray = shiftArrayLeft(massageArray);
-                fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), massageArray , tmp2NET.getWidth(), tmp2NET.getHeight());
-                DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
-                ds.send(dpAnimated);
-                TimeUnit.SECONDS.sleep(1);
-            }
-        }
-
-         */
     }
 
     public void sendMassageAnimation(TMP2NET tmp2NET) throws IOException, InterruptedException {
 
-        Animation = false;
+
         DatagramSocket ds = new DatagramSocket();
-        DatagramPacket dp = createDatagramPacket(tmp2NET);
-        Animation = true;
         InetAddress ia = InetAddress.getByName(tmp2NET.getIp());
         int port = tmp2NET.getPort();
         byte[] data = new byte[tmp2NET.getSize() * 3];
         byte[] payload = createImagePayload(data);
-        // final int[][][] massageArray = {Letter.convertText(tmp2NET.getMassage())};
         int[][] massageArray = Letter.convertText(tmp2NET.getMassage());
 
-        while (Animation) {
+        while (animation) {
             massageArray = shiftArrayLeft(massageArray);
             fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), massageArray , tmp2NET.getWidth(), tmp2NET.getHeight());
             DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
@@ -90,8 +70,8 @@ public class RestApiController {
             TimeUnit.SECONDS.sleep(1);
         }
 
-    }
 
+    }
 
     public static byte[] createImagePayload(byte[] data) {
         int frameSize = data.length;
@@ -210,46 +190,8 @@ public class RestApiController {
         return dp;
     }
 
-    public void update(int[] gameValues, int port, String ip) throws IOException {
-        DatagramSocket ds = new DatagramSocket();
-        InetAddress ia = InetAddress.getByName(ip);
-        byte[] data = new byte[gameValues.length * 3];
-        byte[] payload = createImagePayload(data);
-        payload = fillPayloadGame(payload,gameValues);
-        DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, port);
-        ds.send(dp);
 
-    }
 
-    public byte[] fillPayloadGame(byte[]payload,int[] gameValues){
-        int i = 2;
-        for (int x = 0 ; x < gameValues.length ; x++){
 
-            int value = gameValues[x];
-            switch (value){
-                case 0 :
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
-                    break;
-                case 1:
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
-                    break;
-                case 2:
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
-                    break;
-                case 3:
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
-                    break;
-            }
-                i++;
-        }
-        return payload;
-    }
 }
+
