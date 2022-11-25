@@ -194,8 +194,11 @@ public class AnimationThread extends Thread {
         return dp;
     }
 
-    public void update(int[] gameValues) throws IOException {
+    public void update(String game) throws IOException {
         animation = false;
+        game = game.replace("[","");
+        game = game.replace("]","");
+        String[]gameValues = game.split(",");
         DatagramSocket ds = new DatagramSocket();
         InetAddress ia = InetAddress.getByName(tmp2NET.getIp());
         byte[] data = new byte[gameValues.length * 3];
@@ -206,32 +209,31 @@ public class AnimationThread extends Thread {
 
     }
 
-    public byte[] fillPayloadGame(byte[]payload,int[] gameValues){
+    public byte[] fillPayloadGame(byte[]payload,String[] gameValues){
         int i = 2;
         for (int x = 0 ; x < gameValues.length ; x++){
 
-            int value = gameValues[x];
-            switch (value){
-                case 0 :
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 255;
+            String value = gameValues[x];
+            switch (value) {
+                case "0":
+                    payload[i * 3] = (byte) 0;
+                    payload[i * 3 + 1] = (byte) 0;
+                    payload[i * 3 + 2] = (byte) 255;
                     break;
-                case 1:
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
+                case "2":
+                    payload[i * 3] = (byte) 255;
+                    payload[i * 3 + 1] = (byte) 0;
+                    payload[i * 3 + 2] = (byte) 0;
                     break;
-                case 2:
-                    payload[i*3] = (byte) 255;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
+                default:
+                    payload[i * 3] = (byte) 0;
+                    payload[i * 3 + 1] = (byte) 0;
+                    payload[i * 3 + 2] = (byte) 0;
                     break;
             }
             i++;
         }
         return payload;
     }
-
 }
 

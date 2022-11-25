@@ -26,8 +26,8 @@ public class RestApiController {
     }
 
     @PostMapping(path = "/setGame", consumes = {"application/json"})
-    public void setGameInterface(@RequestBody int[] game) throws Exception {
-        animationThread.update(game);
+    public void setGameInterface(@RequestBody String game) throws Exception {
+       animationThread.update(game);
     }
 
 }
