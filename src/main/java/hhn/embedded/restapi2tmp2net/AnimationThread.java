@@ -15,7 +15,7 @@ public class AnimationThread extends Thread {
 
 
     public AnimationThread() {
-        this.tmp2NET = new TMP2NET("","",1,1,1,0,0,0,false);
+        this.tmp2NET = new TMP2NET("","192.168.50.1",65506,1,1,0,0,0,false);
     }
 
     public void run() {
@@ -43,6 +43,10 @@ public class AnimationThread extends Thread {
         animation = tmp2NET.isAnimation();
         if(!animation){
             sendMassage(tmp2NET);
+        }else {
+            animation = false;
+            Thread.sleep(1000);
+            animation = tmp2NET.isAnimation();
         }
     }
 
@@ -190,8 +194,44 @@ public class AnimationThread extends Thread {
         return dp;
     }
 
+    public void update(int[] gameValues) throws IOException {
+        animation = false;
+        DatagramSocket ds = new DatagramSocket();
+        InetAddress ia = InetAddress.getByName(tmp2NET.getIp());
+        byte[] data = new byte[gameValues.length * 3];
+        byte[] payload = createImagePayload(data);
+        payload = fillPayloadGame(payload,gameValues);
+        DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, tmp2NET.getPort());
+        ds.send(dp);
 
+    }
 
+    public byte[] fillPayloadGame(byte[]payload,int[] gameValues){
+        int i = 2;
+        for (int x = 0 ; x < gameValues.length ; x++){
+
+            int value = gameValues[x];
+            switch (value){
+                case 0 :
+                    payload[i*3] = (byte) 0;
+                    payload[i*3+1] = (byte) 0;
+                    payload[i*3+2] = (byte) 255;
+                    break;
+                case 1:
+                    payload[i*3] = (byte) 0;
+                    payload[i*3+1] = (byte) 0;
+                    payload[i*3+2] = (byte) 0;
+                    break;
+                case 2:
+                    payload[i*3] = (byte) 255;
+                    payload[i*3+1] = (byte) 0;
+                    payload[i*3+2] = (byte) 0;
+                    break;
+            }
+            i++;
+        }
+        return payload;
+    }
 
 }
 
