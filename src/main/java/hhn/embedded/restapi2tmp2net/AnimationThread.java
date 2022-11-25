@@ -1,4 +1,5 @@
 package hhn.embedded.restapi2tmp2net;
+
 import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
@@ -13,27 +14,26 @@ public class AnimationThread extends Thread {
     private boolean animation = false;
 
 
-
     public AnimationThread() {
-        this.tmp2NET = new TMP2NET("","192.168.50.1",65506,1,1,0,0,0,false);
+        this.tmp2NET = new TMP2NET("", "192.168.50.1", 65506, 1, 1, 0, 0, 0, false);
     }
 
     public void run() {
-        while(running){
-           if(animation){
-               try {
-                   sendMassageAnimation(tmp2NET);
-               } catch (IOException e) {
-                   throw new RuntimeException(e);
-               } catch (InterruptedException e) {
-                   throw new RuntimeException(e);
-               }
-               try {
-                   Thread.sleep(1000);
-               } catch (InterruptedException e) {
-                   throw new RuntimeException(e);
-               }
-           }
+        while (running) {
+            if (animation) {
+                try {
+                    sendMassageAnimation(tmp2NET);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 
@@ -41,9 +41,9 @@ public class AnimationThread extends Thread {
     public void setTmp2NET(TMP2NET tmp2NET) throws IOException, InterruptedException {
         this.tmp2NET = tmp2NET;
         animation = tmp2NET.isAnimation();
-        if(!animation){
+        if (!animation) {
             sendMassage(tmp2NET);
-        }else {
+        } else {
             animation = false;
             Thread.sleep(1000);
             animation = tmp2NET.isAnimation();
@@ -68,7 +68,7 @@ public class AnimationThread extends Thread {
 
         while (animation) {
             massageArray = shiftArrayLeft(massageArray);
-            fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), massageArray , tmp2NET.getWidth(), tmp2NET.getHeight());
+            fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), massageArray, tmp2NET.getWidth(), tmp2NET.getHeight());
             DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
             ds.send(dpAnimated);
             TimeUnit.SECONDS.sleep(1);
@@ -81,7 +81,7 @@ public class AnimationThread extends Thread {
         int frameSize = data.length;
         byte[] outputBuffer = new byte[frameSize + 6 + 1];
 
-        outputBuffer[0] = ((byte)0x9C);
+        outputBuffer[0] = ((byte) 0x9C);
         outputBuffer[1] = ((byte) 0xDA);
         outputBuffer[2] = ((byte) 0xB4);
         outputBuffer[3] = ((byte) 0x1);
@@ -91,37 +91,37 @@ public class AnimationThread extends Thread {
         return outputBuffer;
     }
 
-    public static byte[] fillPayloadColor (byte [] payload,int r,int g,int b){
+    public static byte[] fillPayloadColor(byte[] payload, int r, int g, int b) {
 
-        for(int i = 6;i < payload.length-1;i=i+3){
+        for (int i = 6; i < payload.length - 1; i = i + 3) {
             payload[i] = (byte) r;
-            payload[i+1] = (byte)g ;
-            payload[i+2] = (byte) b;
+            payload[i + 1] = (byte) g;
+            payload[i + 2] = (byte) b;
         }
         return payload;
     }
 
 
-
-    public static byte[] fillPayloadData (byte [] payload,int r,int g,int b,int[][]data, int width , int height){
+    public static byte[] fillPayloadData(byte[] payload, int r, int g, int b, int[][] data, int width, int height) {
         printArray(data);
 
+
         int i = 2;
-        for (int y = 0 ; y < height ; y++){
-            for (int x = 0 ; x < width ; x++){
-                if(x >= data[0].length){
-                    payload[i*3] = (byte) 0;
-                    payload[i*3+1] = (byte) 0;
-                    payload[i*3+2] = (byte) 0;
-                }else  {
-                    if(data[y][x] == 1){
-                        payload[i*3] = (byte) r;
-                        payload[i*3+1] = (byte) g ;
-                        payload[i*3+2] = (byte) b ;
-                    }else {
-                        payload[i*3] = (byte) 0;
-                        payload[i*3+1] = (byte) 0;
-                        payload[i*3+2] = (byte) 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x >= data[0].length) {
+                    payload[i * 3] = (byte) 0;
+                    payload[i * 3 + 1] = (byte) 0;
+                    payload[i * 3 + 2] = (byte) 0;
+                } else {
+                    if (data[y][x] == 1) {
+                        payload[i * 3] = (byte) r;
+                        payload[i * 3 + 1] = (byte) g;
+                        payload[i * 3 + 2] = (byte) b;
+                    } else {
+                        payload[i * 3] = (byte) 0;
+                        payload[i * 3 + 1] = (byte) 0;
+                        payload[i * 3 + 2] = (byte) 0;
                     }
                 }
                 i++;
@@ -131,12 +131,12 @@ public class AnimationThread extends Thread {
     }
 
 
-    public static void printArray(int[][]data){
+    public static void printArray(int[][] data) {
         for (int[] x : data) {
             for (int y : x) {
                 if (y == 1) {
                     System.out.print(y + " ");
-                }else{
+                } else {
                     System.out.print("  ");
                 }
             }
@@ -164,7 +164,7 @@ public class AnimationThread extends Thread {
         int[][] shiftBuchstaben = new int[data.length][data[0].length];
 
         for (int y = 0; y < data.length; y++) {
-            shiftBuchstaben[y][data[0].length-1] = data[y][0];
+            shiftBuchstaben[y][data[0].length - 1] = data[y][0];
 
             for (int x = 1; x < data[0].length; x++) {
                 shiftBuchstaben[y][x - 1] = data[y][x];
@@ -196,43 +196,64 @@ public class AnimationThread extends Thread {
 
     public void update(String game) throws IOException {
         animation = false;
-        game = game.replace("[","");
-        game = game.replace("]","");
-        String[]gameValues = game.split(",");
+        game = game.replace("[", "");
+        game = game.replace("]", "");
+        String[] gameValues = game.split(",");
         DatagramSocket ds = new DatagramSocket();
         InetAddress ia = InetAddress.getByName(tmp2NET.getIp());
-        byte[] data = new byte[gameValues.length * 3];
+
+        byte[] data = new byte[180 * 3];
         byte[] payload = createImagePayload(data);
-        payload = fillPayloadGame(payload,gameValues);
+        payload = fillPayloadGame(payload, gameValues);
         DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, tmp2NET.getPort());
         ds.send(dp);
 
     }
 
-    public byte[] fillPayloadGame(byte[]payload,String[] gameValues){
-        int i = 2;
-        for (int x = 0 ; x < gameValues.length ; x++){
+    public byte[] fillPayloadGame(byte[] payload, String[] gameValues) {
 
-            String value = gameValues[x];
-            switch (value) {
-                case "0":
-                    payload[i * 3] = (byte) 0;
-                    payload[i * 3 + 1] = (byte) 0;
-                    payload[i * 3 + 2] = (byte) 255;
-                    break;
-                case "2":
-                    payload[i * 3] = (byte) 255;
-                    payload[i * 3 + 1] = (byte) 0;
-                    payload[i * 3 + 2] = (byte) 0;
-                    break;
-                default:
-                    payload[i * 3] = (byte) 0;
-                    payload[i * 3 + 1] = (byte) 0;
-                    payload[i * 3 + 2] = (byte) 0;
-                    break;
+        int newLine = gameValues.length / 5;
+
+        int i = 2;
+        int arraypos = 0;
+
+        for (int line = 0; line < 5; line++) {
+            for (int x = 0; x < newLine; x++) {
+                String value = gameValues[arraypos];
+                switch (value) {
+                    case "0":
+                        payload[i * 3] = (byte) 0;
+                        payload[i * 3 + 1] = (byte) 0;
+                        payload[i * 3 + 2] = (byte) 255;
+                        break;
+                    case "2":
+                        payload[i * 3] = (byte) 255;
+                        payload[i * 3 + 1] = (byte) 0;
+                        payload[i * 3 + 2] = (byte) 0;
+                        break;
+                    case "3":
+                        payload[i * 3] = (byte) 0;
+                        payload[i * 3 + 1] = (byte) 255;
+                        payload[i * 3 + 2] = (byte) 0;
+                        break;
+                    default:
+                        payload[i * 3] = (byte) 0;
+                        payload[i * 3 + 1] = (byte) 0;
+                        payload[i * 3 + 2] = (byte) 0;
+                        break;
+                }
+                arraypos++;
+                i++;
             }
-            i++;
+            for (int y = newLine; y < 36; y++) {
+                payload[i * 3] = (byte) 0;
+                payload[i * 3 + 1] = (byte) 0;
+                payload[i * 3 + 2] = (byte) 0;
+                i++;
+            }
         }
+
+
         return payload;
     }
 }
