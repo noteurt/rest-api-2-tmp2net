@@ -131,13 +131,16 @@ public class AnimationThread extends Thread {
   }
 
   public int[][] shiftArrayRight(int[][] data) {
+    return shiftArray(data, 0, 0, data[0].length - 1, 1);
+  }
 
+  private int[][] shiftArray(int[][] data, int x, int x1, int length, int destPos) {
     int[][] shiftBuchstaben = new int[data.length][data[0].length];
 
     for (int y = 0; y < data.length; y++) {
-      shiftBuchstaben[y][0] = data[y][data[0].length - 1];
+      shiftBuchstaben[y][x] = data[y][length];
       if (data[0].length - 1 >= 0) {
-        System.arraycopy(data[y], 0, shiftBuchstaben[y], 1, data[0].length - 1);
+        System.arraycopy(data[y], x1, shiftBuchstaben[y], destPos, data[0].length - 1);
       }
     }
     return shiftBuchstaben;
@@ -145,17 +148,7 @@ public class AnimationThread extends Thread {
 
 
   public int[][] shiftArrayLeft(int[][] data) {
-
-    int[][] shiftBuchstaben = new int[data.length][data[0].length];
-
-    for (int y = 0; y < data.length; y++) {
-      shiftBuchstaben[y][data[0].length - 1] = data[y][0];
-
-      if (data[0].length - 1 >= 0) {
-        System.arraycopy(data[y], 1, shiftBuchstaben[y], 0, data[0].length - 1);
-      }
-    }
-    return shiftBuchstaben;
+    return shiftArray(data, data[0].length - 1, 1, 0, 0);
   }
 
   public DatagramPacket createDatagramPacket(TMP2NET tmp2NET) throws UnknownHostException {
