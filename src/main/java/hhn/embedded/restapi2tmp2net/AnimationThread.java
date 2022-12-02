@@ -116,14 +116,10 @@ public class AnimationThread extends Thread {
     int i = 2;
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        if (x >= data[0].length) {
-          setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
+        if (!(x >= data[0].length) && data[y][x] == 1) {
+          setPayload(payload, i, (byte) r, (byte) g, (byte) b);
         } else {
-          if (data[y][x] == 1) {
-            setPayload(payload, i, (byte) r, (byte) g, (byte) b);
-          } else {
-            setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
-          }
+          setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
         }
         i++;
       }
