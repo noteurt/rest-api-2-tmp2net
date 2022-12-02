@@ -5,82 +5,77 @@ import java.io.Serializable;
 
 
 public class TMP2NET implements Serializable {
-    public String message;
-    public String ip;
-    public int port;
+  private final String MESSAGE;
+  private final String IP;
+  private final int PORT;
 
-    private  int height;
+  private final int HEIGHT;
 
-    private  int width;
+  private final int WIDTH;
 
-    private  int size;
+  private final int SIZE;
 
-    private int r;
+  private final int R;
 
-    private int g;
+  private final int G;
 
-    private int b;
+  private final int B;
 
-    private boolean animation;
+  private final boolean ANIMATION;
 
-    public TMP2NET(){
-
-    }
-
-
-    public TMP2NET(String message, String ip, int port, int height, int width, int r, int g, int b,boolean animation){
-        this.message = message +"  ";
-        this.ip = ip;
-        this.port = port;
-        this.height = height;
-        this.width = width;
-        this.size = width*height;
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.animation = animation;
-    }
+  public TMP2NET(String message, String ip, int port, int height, int width, int r, int g, int b,
+                 boolean animation) {
+    this.MESSAGE = message + "  ";
+    this.IP = ip;
+    this.PORT = port;
+    this.HEIGHT = height;
+    this.WIDTH = width;
+    this.SIZE = width * height;
+    this.R = r;
+    this.G = g;
+    this.B = b;
+    this.ANIMATION = animation;
+  }
 
 
+  public String getMessage() {
+    return this.MESSAGE;
+  }
 
-    public String getMassage (){
-        return this.message;
-    }
+  public String getIP() {
+    return this.IP;
+  }
 
-    public String getIp (){
-        return this.ip;
-    }
+  public int getPort() {
+    return this.PORT;
+  }
 
-    public int getPort (){
-        return this.port;
-    }
+  public int getHeight() {
+    return HEIGHT;
+  }
 
-    public int getHeight() {
-        return height;
-    }
+  public int getWidth() {
+    return WIDTH;
+  }
 
-    public  int getWidth() {
-        return width;
-    }
+  public int getSize() {
+    return SIZE;
+  }
 
-    public int getSize() {
-        return size;
-    }
+  public int getR() {
+    return R;
+  }
 
-    public int getR() {
-        return r;
-    }
+  public int getG() {
+    return G;
+  }
 
-    public int getG() {
-        return g;
-    }
+  public int getB() {
+    return B;
+  }
 
-    public int getB() {
-        return b;
-    }
-
-    public boolean isAnimation() {
-        return animation;
-    }
+  public boolean isAnimation() {
+    return ANIMATION;
+  }
 }
 
