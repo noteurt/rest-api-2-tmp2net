@@ -7,10 +7,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
 public class AnimationThread extends Thread {
+  //TODO Jede Methode außer einzeilige Getter und Setter sollen ein JavaDoc haben. (wegen Doku, CodeStyle und damit wir uns schnell daran erinnern, was geschrieben wurde, nachdem wir den Code über Weihnachten nicht angefasst haben) Auch interne Kommentare sind nicht schlecht, wenn es um die Behandlung von Randfällen geht.
   private TMP2NET tmp2NET;
   private boolean animation = false;
 
@@ -20,15 +23,16 @@ public class AnimationThread extends Thread {
   }
 
   public static byte[] createImagePayload(byte[] data) {
+    //TODO Payload soll eine eigene Klasse haben. Diese ist schon zu lang und 50% gehört zum Payload.
     int frameSize = data.length;
     byte[] outputBuffer = new byte[frameSize + 6 + 1];
 
-    outputBuffer[0] = ((byte) 0x9C);
-    outputBuffer[1] = ((byte) 0xDA);
-    outputBuffer[2] = ((byte) 0xB4);
-    outputBuffer[3] = ((byte) 0x1);
-    outputBuffer[4] = ((byte) 0x1);
-    outputBuffer[5] = ((byte) 0x1);
+    outputBuffer[0] = (byte) 0x9C;
+    outputBuffer[1] = (byte) 0xDA;
+    outputBuffer[2] = (byte) 0xB4;
+    outputBuffer[3] = (byte) 0x1;
+    outputBuffer[4] = (byte) 0x1;
+    outputBuffer[5] = (byte) 0x1;
     outputBuffer[6 + frameSize] = (byte) 0x36;
     return outputBuffer;
   }
@@ -52,7 +56,7 @@ public class AnimationThread extends Thread {
     while (true) {
       if (animation) {
         try {
-          sendMassageAnimation(tmp2NET);
+          sendMessageAnimation(tmp2NET);
         } catch (IOException | InterruptedException e) {
           throw new RuntimeException(e);
         }
@@ -66,36 +70,53 @@ public class AnimationThread extends Thread {
     }
   }
 
+  public void runIdea() {
+    //TODO Hab die Klasse zufällig gefunden. Sieht eigtl. deutlich sauberer als eine Thread.sleep Schleife aus
+    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+    if (animation) {
+      executor.scheduleAtFixedRate(() -> {
+        try {
+          sendMessageAnimation(tmp2NET);
+        } catch (IOException | InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new RuntimeException(e);
+        }
+      }, 0, 1, TimeUnit.SECONDS);
+    }
+  }
+
   public void setTmp2NET(TMP2NET tmp2NET) throws IOException, InterruptedException {
     this.tmp2NET = tmp2NET;
     animation = tmp2NET.isAnimation();
     if (!animation) {
-      sendMassage(tmp2NET);
+      sendMessage(tmp2NET);
     } else {
+      //TODO Was ist hier los? Falls es eine Animation ist, setz animation auf false, warte 1s und setz es auf den vorherigen Wert. Gibt es da nen race condition irgendwo?
       animation = false;
       Thread.sleep(1000);
       animation = tmp2NET.isAnimation();
     }
   }
 
-  public void sendMassage(TMP2NET tmp2NET) throws IOException {
+  public void sendMessage(TMP2NET tmp2NET) throws IOException {
     DatagramPacket dp = createDatagramPacket(tmp2NET);
     try (DatagramSocket ds = new DatagramSocket()) {
       ds.send(dp);
     }
   }
 
-  public void sendMassageAnimation(TMP2NET tmp2NET) throws IOException, InterruptedException {
+  public void sendMessageAnimation(TMP2NET tmp2NET) throws IOException, InterruptedException {
     InetAddress ia = InetAddress.getByName(tmp2NET.getIP());
     int port = tmp2NET.getPort();
     byte[] data = new byte[tmp2NET.getSize() * 3];
     byte[] payload = createImagePayload(data);
-    int[][] massageArray = Letter.convertText(tmp2NET.getMessage());
+    int[][] messageArray = Letter.convertText(tmp2NET.getMessage());
 
     try (DatagramSocket ds = new DatagramSocket()) {
       while (animation) {
-        massageArray = shiftArrayLeft(massageArray);
-        fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), massageArray,
+        messageArray = shiftArrayLeft(messageArray);
+        fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,
             tmp2NET.getWidth(), tmp2NET.getHeight());
         DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
         ds.send(dpAnimated);
@@ -130,16 +151,16 @@ public class AnimationThread extends Thread {
     return shiftArray(data, 0, 0, data[0].length - 1, 1);
   }
 
-  private int[][] shiftArray(int[][] data, int x, int x1, int length, int destPos) {
-    int[][] shiftBuchstaben = new int[data.length][data[0].length];
+  private int[][] shiftArray(int[][] data, int targetPos, int srcStart, int srcEnd, int destStart) {
+    int[][] shiftLetters = new int[data.length][data[0].length];
 
     for (int y = 0; y < data.length; y++) {
-      shiftBuchstaben[y][x] = data[y][length];
+      shiftLetters[y][targetPos] = data[y][srcEnd];
       if (data[0].length - 1 >= 0) {
-        System.arraycopy(data[y], x1, shiftBuchstaben[y], destPos, data[0].length - 1);
+        System.arraycopy(data[y], srcStart, shiftLetters[y], destStart, data[0].length - 1);
       }
     }
-    return shiftBuchstaben;
+    return shiftLetters;
   }
 
 
@@ -148,23 +169,26 @@ public class AnimationThread extends Thread {
   }
 
   public DatagramPacket createDatagramPacket(TMP2NET tmp2NET) throws UnknownHostException {
-    //get IP for TMP2Protocol
+    // Get IP for TMP2Protocol
     InetAddress ia = InetAddress.getByName(tmp2NET.getIP());
-    //get Port for TMP2Protocol
+    // Get Port for TMP2Protocol
     int port = tmp2NET.getPort();
-    //create new byte Array with the size of the Amount of Pixel(calculated with getSize) times 3 because one pixel
-    //has 3 values RGB
+    // Create new byte Array with the size of the amount of pixels (calculated with getSize() times 3 because one pixel
+    // has 3 values due to RGB)
     byte[] data = new byte[tmp2NET.getSize() * 3];
-    //create new payload byte Array
+    // Create new payload byte Array
     byte[] payload = createImagePayload(data);
-    //fill payload with all relevant information
+
+    // Fill payload with all relevant information
     if (tmp2NET.getMessage().isEmpty()) {
       fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB());
     } else {
-      fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),
-          Letter.convertText(tmp2NET.getMessage()), tmp2NET.getWidth(), tmp2NET.getHeight());
+      int[][] messageArray = Letter.convertText(tmp2NET.getMessage());
+      fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,
+          tmp2NET.getWidth(), tmp2NET.getHeight());
     }
-    //create DatagramPacket to send DatagramSocket
+
+    // Create DatagramPacket to send DatagramSocket
     return new DatagramPacket(payload, payload.length, ia, port);
   }
 
@@ -195,15 +219,15 @@ public class AnimationThread extends Thread {
       for (int x = 0; x < newLine; x++) {
         String value = gameValuesIterator.next();
         switch (value) {
-          case "0" -> setPayload(payload, i, (byte) 0, (byte) 0, (byte) 255);
-          case "2" -> setPayload(payload, i, (byte) 255, (byte) 0, (byte) 0);
-          case "3" -> setPayload(payload, i, (byte) 0, (byte) 255, (byte) 0);
-          default -> setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
+          case "0" -> setPayloadBlue(payload, i);
+          case "2" -> setPayloadRed(payload, i);
+          case "3" -> setPayloadGreen(payload, i);
+          default -> setPayloadBlack(payload, i);
         }
         i++;
       }
       for (int y = newLine; y < 36; y++) {
-        setPayload(payload, i, (byte) 0, (byte) 0, (byte) 255);
+        setPayloadBlue(payload, i);
         i++;
       }
     }
@@ -216,5 +240,20 @@ public class AnimationThread extends Thread {
     payload[i * 3 + 1] = GREEN;
     payload[i * 3 + 2] = BLUE;
   }
-}
 
+  private void setPayloadGreen(byte[] payload, int i) {
+    setPayload(payload, i, (byte) 255, (byte) 0, (byte) 0);
+  }
+
+  private void setPayloadBlue(byte[] payload, int i) {
+    setPayload(payload, i, (byte) 0, (byte) 0, (byte) 255);
+  }
+
+  private void setPayloadRed(byte[] payload, int i) {
+    setPayload(payload, i, (byte) 0, (byte) 255, (byte) 0);
+  }
+
+  private void setPayloadBlack(byte[] payload, int i) {
+    setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
+  }
+}
