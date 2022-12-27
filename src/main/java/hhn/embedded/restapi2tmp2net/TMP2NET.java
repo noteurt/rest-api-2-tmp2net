@@ -5,77 +5,77 @@ import java.io.Serializable;
 
 
 public class TMP2NET implements Serializable {
-  private final String MESSAGE;
-  private final String IP;
-  private final int PORT;
+  private final String message;
+  private final String ip;
+  private final int port;
 
-  private final int HEIGHT;
+  private final int height;
 
-  private final int WIDTH;
+  private final int width;
 
-  private final int SIZE;
+  private final int size;
 
-  private final int R;
+  private final int r;
 
-  private final int G;
+  private final int g;
 
-  private final int B;
+  private final int b;
 
-  private final boolean ANIMATION;
+  private final boolean animation;
 
   public TMP2NET(String message, String ip, int port, int height, int width, int r, int g, int b,
                  boolean animation) {
-    this.MESSAGE = message + "  ";
-    this.IP = ip;
-    this.PORT = port;
-    this.HEIGHT = height;
-    this.WIDTH = width;
-    this.SIZE = width * height;
-    this.R = r;
-    this.G = g;
-    this.B = b;
-    this.ANIMATION = animation;
+    this.message = message + "  ";
+    this.ip = ip;
+    this.port = port;
+    this.height = height;
+    this.width = width;
+    this.size = width * height;
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.animation = animation;
   }
 
 
   public String getMessage() {
-    return this.MESSAGE;
+    return this.message;
   }
 
   public String getIP() {
-    return this.IP;
+    return this.ip;
   }
 
   public int getPort() {
-    return this.PORT;
+    return this.port;
   }
 
   public int getHeight() {
-    return HEIGHT;
+    return height;
   }
 
   public int getWidth() {
-    return WIDTH;
+    return width;
   }
 
   public int getSize() {
-    return SIZE;
+    return size;
   }
 
   public int getR() {
-    return R;
+    return r;
   }
 
   public int getG() {
-    return G;
+    return g;
   }
 
   public int getB() {
-    return B;
+    return b;
   }
 
   public boolean isAnimation() {
-    return ANIMATION;
+    return animation;
   }
 }
 

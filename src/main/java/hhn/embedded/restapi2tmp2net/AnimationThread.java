@@ -51,14 +51,18 @@ public class AnimationThread extends Thread {
     System.out.println();
   }
 
+  @Override
   public void run() {
     //noinspection InfiniteLoopStatement
     while (true) {
       if (animation) {
         try {
           sendMessageAnimation(tmp2NET);
-        } catch (IOException | InterruptedException e) {
-          throw new RuntimeException(e);
+        } catch (IOException e) {
+          throw new IOException(e);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new InterruptedException(e);
         }
         try {
           //noinspection BusyWait
@@ -78,9 +82,11 @@ public class AnimationThread extends Thread {
       executor.scheduleAtFixedRate(() -> {
         try {
           sendMessageAnimation(tmp2NET);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
+          throw new IOException(e);
+        } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
+          throw new InterruptedException(e);
         }
       }, 0, 1, TimeUnit.SECONDS);
     }
@@ -137,7 +143,7 @@ public class AnimationThread extends Thread {
     int i = 2;
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        if (!(x >= data[0].length) && data[y][x] == 1) {
+        if (x < data[0].length && data[y][x] == 1) {
           setPayload(payload, i, (byte) r, (byte) g, (byte) b);
         } else {
           setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
