@@ -22,7 +22,6 @@ public class SensorData {
       }
       for (RaumController raum : rooms) {
           if(raum.getmcAdresse().equals(mcAdresse)){
-              System.out.println(raum.getmcAdresse());
              return true;
           }
       }
