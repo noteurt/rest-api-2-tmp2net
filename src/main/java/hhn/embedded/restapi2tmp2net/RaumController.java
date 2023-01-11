@@ -6,9 +6,12 @@ public class RaumController {
 
     private int temp;
 
-    public RaumController(String mcAdresse,int temp){
+    private boolean light;
+
+    public RaumController(String mcAdresse,int temp, boolean light){
         this.mcAdresse = mcAdresse;
         this.temp = temp;
+        this.light = light;
     }
 
     public String getmcAdresse() {
@@ -26,5 +29,14 @@ public class RaumController {
     public void setTemp(int temp) {
         this.temp = temp;
     }
+
+    public boolean isLight() {
+        return light;
+    }
+
+    public void setLight(boolean light) {
+        this.light = light;
+    }
+
 
 }

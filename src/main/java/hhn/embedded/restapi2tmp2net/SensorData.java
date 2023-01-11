@@ -1,7 +1,6 @@
 package hhn.embedded.restapi2tmp2net;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class SensorData {
