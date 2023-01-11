@@ -59,10 +59,8 @@ public class AnimationThread extends Thread {
         try {
           sendMessageAnimation(tmp2NET);
         } catch (IOException e) {
-          throw new IOException(e);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new InterruptedException(e);
         }
         try {
           //noinspection BusyWait
@@ -83,10 +81,8 @@ public class AnimationThread extends Thread {
         try {
           sendMessageAnimation(tmp2NET);
         } catch (IOException e) {
-          throw new IOException(e);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new InterruptedException(e);
         }
       }, 0, 1, TimeUnit.SECONDS);
     }
@@ -131,9 +127,10 @@ public class AnimationThread extends Thread {
     }
   }
 
-  public void fillPayloadColor(byte[] payload, int r, int g, int b) {
-    for (int i = 6; i < payload.length - 1; i = i + 3) {
-      setPayload(payload, i, (byte) r, (byte) g, (byte) b);
+  public void fillPayloadColor(byte[] payload, int r, int g, int b,int size) {
+
+    for (int i = 0; i < size; i++) {
+      setPayload(payload, i+2, (byte) r, (byte) g, (byte) b);
     }
   }
 
@@ -186,8 +183,9 @@ public class AnimationThread extends Thread {
     byte[] payload = createImagePayload(data);
 
     // Fill payload with all relevant information
-    if (tmp2NET.getMessage().isEmpty()) {
-      fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB());
+    if (tmp2NET.getMessage().isBlank()) {
+        System.out.println("color");
+      fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
     } else {
       int[][] messageArray = Letter.convertText(tmp2NET.getMessage());
       fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,

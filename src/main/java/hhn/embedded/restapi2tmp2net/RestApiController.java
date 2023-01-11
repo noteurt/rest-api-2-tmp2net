@@ -1,5 +1,6 @@
 package hhn.embedded.restapi2tmp2net;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,11 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RestApiController {
 
+  private SensorData sensorData;
+
 
   private final AnimationThread animationThread = new AnimationThread();
 
   public RestApiController() {
     animationThread.start();
+    sensorData = new SensorData();
   }
 
 
@@ -29,5 +33,17 @@ public class RestApiController {
   public void setGameInterface(@RequestBody String game) throws Exception {
     animationThread.update(game);
   }
+
+  @PostMapping(path = "/receiveData", consumes = {"application/json"})
+  public void receiveData(@RequestBody RaumController data){
+    this.sensorData.updateValue(data);
+  }
+
+
+  @PostMapping(path = "/getData")
+  public SensorData sendData(){
+    return this.sensorData;
+  }
+
 
 }
