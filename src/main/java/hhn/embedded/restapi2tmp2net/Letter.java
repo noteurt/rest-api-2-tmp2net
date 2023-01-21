@@ -266,14 +266,47 @@ public class Letter {
         return new Letter(5, letterArray);
       }
       case 'Z' -> {
-        letterArray = new int[][] {
-            {1, 1, 1, 1},
-            {0, 0, 0, 1},
-            {0, 1, 1, 0},
-            {1, 0, 1, 0},
-            {1, 1, 1, 1}
+        letterArray = new int[][]{
+                {1, 1, 1, 1},
+                {0, 0, 0, 1},
+                {0, 1, 1, 0},
+                {1, 0, 1, 0},
+                {1, 1, 1, 1}
         };
         return new Letter(4, letterArray);
+      }
+        case '-' -> {
+          letterArray = new int[][] {
+                  {1, 1, 1, 1, 1, 1},
+                  {1, 1, 1, 1, 1, 1},
+                  {1, 1, 1, 1, 1, 1},
+                  {1, 1, 1, 1, 1, 1},
+                  {1, 1, 1, 1, 1, 1}
+
+          };
+          return new Letter(6, letterArray);
+      }
+      case '*' -> {
+        letterArray = new int[][] {
+                {1, 0, 1, 0, 1, 0},
+                {0, 1, 0, 1, 0, 1},
+                {1, 0, 1, 0, 1, 0},
+                {0, 1, 0, 1, 0, 1},
+                {1, 0, 1, 0, 1, 0}
+
+        };
+        return new Letter(6, letterArray);
+      }
+      case '3' -> {
+        letterArray = new int[][] {
+                {1, 1, 0, 1, 1, 0},
+                {0, 1, 1, 1, 0, 0},
+                {0, 0, 1, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0}
+
+        };
+        return new Letter(6, letterArray);
       }
       default -> {
         letterArray = new int[][] {

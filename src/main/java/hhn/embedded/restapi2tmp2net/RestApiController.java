@@ -34,16 +34,25 @@ public class RestApiController {
     animationThread.update(game);
   }
 
-  @PostMapping(path = "/receiveData", consumes = {"application/json"})
-  public void receiveData(@RequestBody RaumController data){
-    this.sensorData.updateValue(data);
+  @PostMapping(path = "/sendData", consumes = {"application/json"})
+  public void sendData(@RequestBody NodeData data){
+    System.out.println(data.getMacAdresse()+" "+data.getValues());
+    String sensorValues = data.getValues();
+    String[]valuesArray = sensorValues.split(" ");
+    RaumController roomData = new RaumController(data.getMacAdresse(),valuesArray[0],valuesArray[1],valuesArray[2],valuesArray[3]);
+    this.sensorData.updateValue(roomData);
   }
 
 
   @PostMapping(path = "/getData")
-  public SensorData sendData(){
+  public SensorData getData(){
     return this.sensorData;
   }
 
+  @PostMapping("/stop")
+  public void stop(){
+    animationThread.setSending(false);
+    animationThread.setRainbow(false);
+  }
 
 }

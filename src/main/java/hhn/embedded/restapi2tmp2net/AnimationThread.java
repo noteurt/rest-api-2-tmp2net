@@ -15,7 +15,9 @@ import java.util.concurrent.TimeUnit;
 public class AnimationThread extends Thread {
   //TODO Jede Methode außer einzeilige Getter und Setter sollen ein JavaDoc haben. (wegen Doku, CodeStyle und damit wir uns schnell daran erinnern, was geschrieben wurde, nachdem wir den Code über Weihnachten nicht angefasst haben) Auch interne Kommentare sind nicht schlecht, wenn es um die Behandlung von Randfällen geht.
   private TMP2NET tmp2NET;
-  private boolean animation = false;
+  private boolean sending = false;
+
+  private boolean rainbow = false;
 
 
   public AnimationThread() {
@@ -55,7 +57,7 @@ public class AnimationThread extends Thread {
   public void run() {
     //noinspection InfiniteLoopStatement
     while (true) {
-      if (animation) {
+      if (sending) {
         try {
           sendMessageAnimation(tmp2NET);
         } catch (IOException e) {
@@ -76,7 +78,7 @@ public class AnimationThread extends Thread {
     //TODO Hab die Klasse zufällig gefunden. Sieht eigtl. deutlich sauberer als eine Thread.sleep Schleife aus
     ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-    if (animation) {
+    if (sending) {
       executor.scheduleAtFixedRate(() -> {
         try {
           sendMessageAnimation(tmp2NET);
@@ -90,15 +92,10 @@ public class AnimationThread extends Thread {
 
   public void setTmp2NET(TMP2NET tmp2NET) throws IOException, InterruptedException {
     this.tmp2NET = tmp2NET;
-    animation = tmp2NET.isAnimation();
-    if (!animation) {
-      sendMessage(tmp2NET);
-    } else {
-      //TODO Was ist hier los? Falls es eine Animation ist, setz animation auf false, warte 1s und setz es auf den vorherigen Wert. Gibt es da nen race condition irgendwo?
-      animation = false;
+      sending = false;
       Thread.sleep(1000);
-      animation = tmp2NET.isAnimation();
-    }
+      sending = true;
+
   }
 
   public void sendMessage(TMP2NET tmp2NET) throws IOException {
@@ -116,13 +113,20 @@ public class AnimationThread extends Thread {
     int[][] messageArray = Letter.convertText(tmp2NET.getMessage());
 
     try (DatagramSocket ds = new DatagramSocket()) {
-      while (animation) {
-        messageArray = shiftArrayLeft(messageArray);
-        fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,
-            tmp2NET.getWidth(), tmp2NET.getHeight());
-        DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
-        ds.send(dpAnimated);
-        TimeUnit.SECONDS.sleep(1);
+      while (sending) {
+       if(tmp2NET.isAnimation()){
+         messageArray = shiftArrayLeft(messageArray);
+       }
+       if(tmp2NET.getMessage().isBlank()){
+          fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
+        }else {
+         fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,
+                 tmp2NET.getWidth(), tmp2NET.getHeight());
+       }
+          DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
+          ds.send(dpAnimated);
+          TimeUnit.MILLISECONDS.sleep(500);
+
       }
     }
   }
@@ -136,7 +140,7 @@ public class AnimationThread extends Thread {
 
   public void fillPayloadData(byte[] payload, int r, int g, int b, int[][] data, int width,
                               int height) {
-    printArray(data);
+    //printArray(data);
     int i = 2;
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
@@ -184,7 +188,6 @@ public class AnimationThread extends Thread {
 
     // Fill payload with all relevant information
     if (tmp2NET.getMessage().isBlank()) {
-        System.out.println("color");
       fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
     } else {
       int[][] messageArray = Letter.convertText(tmp2NET.getMessage());
@@ -197,7 +200,7 @@ public class AnimationThread extends Thread {
   }
 
   public void update(String game) throws IOException {
-    animation = false;
+    sending = false;
     game = game.replace("[", "");
     game = game.replace("]", "");
     String[] gameValues = game.split(",");
@@ -260,4 +263,31 @@ public class AnimationThread extends Thread {
   private void setPayloadBlack(byte[] payload, int i) {
     setPayload(payload, i, (byte) 0, (byte) 0, (byte) 0);
   }
+
+
+  public boolean isSending() {
+    return sending;
+  }
+
+  public void setSending(boolean sending) {
+    this.sending = sending;
+  }
+
+  public void rainbow() throws InterruptedException {
+    setSending(false);
+    Thread.sleep(1000);
+    while(rainbow){
+
+    }
+
+  }
+
+  public boolean isRainbow() {
+    return rainbow;
+  }
+
+  public void setRainbow(boolean rainbow) {
+    this.sending = rainbow;
+  }
+
 }

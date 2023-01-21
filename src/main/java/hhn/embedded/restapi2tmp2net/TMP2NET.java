@@ -25,7 +25,7 @@ public class TMP2NET implements Serializable {
 
   public TMP2NET(String message, String ip, int port, int height, int width, int r, int g, int b,
                  boolean animation) {
-    this.message = message + "  ";
+    this.message = message + "";
     this.ip = ip;
     this.port = port;
     this.height = height;

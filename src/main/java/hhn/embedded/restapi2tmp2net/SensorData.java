@@ -21,7 +21,7 @@ public class SensorData {
           return false;
       }
       for (RaumController raum : rooms) {
-          if(raum.getmcAdresse().equals(mcAdresse)){
+          if(raum.getmacAdresse().equals(mcAdresse)){
              return true;
           }
       }
@@ -31,16 +31,18 @@ public class SensorData {
 
     public void updateValue(RaumController raum){
 
-        if (checkRoom(raum.getmcAdresse())){
+        if (checkRoom(raum.getmacAdresse())){
             int index = 0;
             for (RaumController room : rooms) {
-                if(room.getmcAdresse().equals(raum.getmcAdresse())){
+                if(room.getmacAdresse().equals(raum.getmacAdresse())){
                     index = rooms.indexOf(room);
                 }
             }
             this.rooms.set(index,raum);
         }else{
-            this.rooms.add(raum);
+            if(raum.getmacAdresse() != null){
+                this.rooms.add(raum);
+            }
         }
     }
 }
