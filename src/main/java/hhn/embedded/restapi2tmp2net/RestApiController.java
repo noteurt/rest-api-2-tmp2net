@@ -22,6 +22,7 @@ public class RestApiController {
 
   @PostMapping(path = "/setMessage", consumes = {"application/json"})
   public void sendMassageUDP(@RequestBody TMP2NET tmp2) throws Exception {
+    animationThread.setGameActive(false);
     TMP2NET tmp2NET =
         new TMP2NET(tmp2.getMessage(), tmp2.getIP(), tmp2.getPort(), tmp2.getHeight(),
             tmp2.getWidth(),
@@ -30,13 +31,13 @@ public class RestApiController {
   }
 
   @PostMapping(path = "/setGame", consumes = {"application/json"})
-  public void setGameInterface(@RequestBody String game) throws Exception {
+    public void setGameInterface(@RequestBody String game) throws Exception {
+    animationThread.setSending(false);
     animationThread.update(game);
   }
 
   @PostMapping(path = "/sendData", consumes = {"application/json"})
   public void sendData(@RequestBody NodeData data){
-    System.out.println(data.getMacAdresse()+" "+data.getValues());
     String sensorValues = data.getValues();
     String[]valuesArray = sensorValues.split(" ");
     RaumController roomData = new RaumController(data.getMacAdresse(),valuesArray[0],valuesArray[1],valuesArray[2],valuesArray[3]);
@@ -44,7 +45,7 @@ public class RestApiController {
   }
 
 
-  @PostMapping(path = "/getData")
+  @GetMapping(path = "/getData")
   public SensorData getData(){
     return this.sensorData;
   }
@@ -52,7 +53,7 @@ public class RestApiController {
   @PostMapping("/stop")
   public void stop(){
     animationThread.setSending(false);
-    animationThread.setRainbow(false);
+    animationThread.setGameActive(false);
   }
 
 }

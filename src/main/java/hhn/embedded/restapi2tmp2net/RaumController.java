@@ -3,18 +3,18 @@ package hhn.embedded.restapi2tmp2net;
 public class RaumController {
 
     private String macAdresse;
-    private int temp;
+    private String temp;
 
-    private int airpressure;
+    private String airpressure;
 
-    private int humidity;
+    private String humidity;
     private boolean light;
 
     public RaumController(String mcAdresse,String temp,String airPressure, String humidity ,String light){
         this.macAdresse = mcAdresse;
-        this.temp = Integer.parseInt(temp);
-        this.airpressure = Integer.parseInt(airPressure);
-        this.humidity = Integer.parseInt(humidity);
+        this.temp = temp;
+        this.airpressure = airPressure;
+        this.humidity = humidity;
         if(Integer.parseInt(light) != 1){
             this.light = false;
         }else{
@@ -30,11 +30,11 @@ public class RaumController {
         this.macAdresse = mcAdresse;
     }
 
-    public int getTemp() {
+    public String getTemp() {
         return temp;
     }
 
-    public void setTemp(int temp) {
+    public void setTemp(String temp) {
         this.temp = temp;
     }
 
@@ -47,19 +47,19 @@ public class RaumController {
         this.light = light;
     }
 
-    public int getAirpressure() {
+    public String getAirpressure() {
         return airpressure;
     }
 
-    public void setAirpressure(int airpressure) {
+    public void setAirpressure(String airpressure) {
         this.airpressure = airpressure;
     }
 
-    public int getHumidity() {
+    public String getHumidity() {
         return humidity;
     }
 
-    public void setHumidity(int humidity) {
+    public void setHumidity(String humidity) {
         this.humidity = humidity;
     }
 

@@ -1,10 +1,7 @@
 package hhn.embedded.restapi2tmp2net;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -15,13 +12,17 @@ import java.util.concurrent.TimeUnit;
 public class AnimationThread extends Thread {
   //TODO Jede Methode außer einzeilige Getter und Setter sollen ein JavaDoc haben. (wegen Doku, CodeStyle und damit wir uns schnell daran erinnern, was geschrieben wurde, nachdem wir den Code über Weihnachten nicht angefasst haben) Auch interne Kommentare sind nicht schlecht, wenn es um die Behandlung von Randfällen geht.
   private TMP2NET tmp2NET;
+
+  private  String[] gameValues;
+
   private boolean sending = false;
 
-  private boolean rainbow = false;
+  private boolean gameActive = false;
+
 
 
   public AnimationThread() {
-    this.tmp2NET = new TMP2NET("", "192.168.50.1", 65506, 1, 1, 0, 0, 0, false);
+    this.tmp2NET = new TMP2NET("", "192.168.50.1", 65506, 5, 36, 0, 0, 0, false);
   }
 
   public static byte[] createImagePayload(byte[] data) {
@@ -59,10 +60,23 @@ public class AnimationThread extends Thread {
     while (true) {
       if (sending) {
         try {
-          sendMessageAnimation(tmp2NET);
+          sendMessage();
         } catch (IOException e) {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
+        }
+        try {
+          //noinspection BusyWait
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+      if(gameActive){
+        try {
+          sendGameData();
+        } catch (UnknownHostException e) {
+          throw new RuntimeException(e);
         }
         try {
           //noinspection BusyWait
@@ -81,7 +95,7 @@ public class AnimationThread extends Thread {
     if (sending) {
       executor.scheduleAtFixedRate(() -> {
         try {
-          sendMessageAnimation(tmp2NET);
+          sendMessage();
         } catch (IOException e) {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
@@ -98,14 +112,7 @@ public class AnimationThread extends Thread {
 
   }
 
-  public void sendMessage(TMP2NET tmp2NET) throws IOException {
-    DatagramPacket dp = createDatagramPacket(tmp2NET);
-    try (DatagramSocket ds = new DatagramSocket()) {
-      ds.send(dp);
-    }
-  }
-
-  public void sendMessageAnimation(TMP2NET tmp2NET) throws IOException, InterruptedException {
+  public void sendMessage() throws IOException, InterruptedException {
     InetAddress ia = InetAddress.getByName(tmp2NET.getIP());
     int port = tmp2NET.getPort();
     byte[] data = new byte[tmp2NET.getSize() * 3];
@@ -126,7 +133,6 @@ public class AnimationThread extends Thread {
           DatagramPacket dpAnimated = new DatagramPacket(payload, payload.length, ia, port);
           ds.send(dpAnimated);
           TimeUnit.MILLISECONDS.sleep(500);
-
       }
     }
   }
@@ -203,15 +209,30 @@ public class AnimationThread extends Thread {
     sending = false;
     game = game.replace("[", "");
     game = game.replace("]", "");
-    String[] gameValues = game.split(",");
-    InetAddress ia = InetAddress.getByName(tmp2NET.getIP());
+    gameActive = true;
+    gameValues = game.split(",");
 
-    byte[] data = new byte[180 * 3];
-    byte[] payload = createImagePayload(data);
-    payload = fillPayloadGame(payload, gameValues);
-    DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, tmp2NET.getPort());
-    try (DatagramSocket ds = new DatagramSocket()) {
-      ds.send(dp);
+  }
+
+  public void sendGameData() throws UnknownHostException {
+    while(gameActive) {
+      InetAddress ia = InetAddress.getByName(tmp2NET.getIP());
+      byte[] data = new byte[tmp2NET.getSize() * 3];
+      byte[] payload = createImagePayload(data);
+      payload = fillPayloadGame(payload, gameValues);
+      DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, tmp2NET.getPort());
+      try (DatagramSocket ds = new DatagramSocket()) {
+        ds.send(dp);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      try {
+        //noinspection BusyWait
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      printGame(gameValues);
     }
   }
 
@@ -273,21 +294,23 @@ public class AnimationThread extends Thread {
     this.sending = sending;
   }
 
-  public void rainbow() throws InterruptedException {
-    setSending(false);
-    Thread.sleep(1000);
-    while(rainbow){
+  public boolean isGameActive() {
+    return gameActive;
+  }
 
+  public void setGameActive(boolean gameActive) {
+    this.gameActive = gameActive;
+  }
+
+  public void printGame(String[]gameValues){
+    for(int i = 0 ;i <gameValues.length;i++){
+        System.out.print(gameValues[i]);
+      if((i+1)%6 == 0){
+        System.out.println();
+      }
     }
+    System.out.println();
 
-  }
-
-  public boolean isRainbow() {
-    return rainbow;
-  }
-
-  public void setRainbow(boolean rainbow) {
-    this.sending = rainbow;
   }
 
 }
