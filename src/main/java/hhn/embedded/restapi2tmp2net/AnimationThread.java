@@ -15,14 +15,18 @@ public class AnimationThread extends Thread {
 
   private  String[] gameValues;
 
+  private  String[] colorValues;
+
   private boolean sending = false;
 
   private boolean gameActive = false;
 
+  private boolean colorActive = false;
+
 
 
   public AnimationThread() {
-    this.tmp2NET = new TMP2NET("", "192.168.50.1", 65506, 5, 36, 0, 0, 0, false);
+    this.tmp2NET = new TMP2NET("", "192.168.137.253", 65506, 2, 6, 0, 0, 0, false);
   }
 
   public static byte[] createImagePayload(byte[] data) {
@@ -85,6 +89,20 @@ public class AnimationThread extends Thread {
           Thread.currentThread().interrupt();
         }
       }
+
+      if(colorActive){
+        try {
+          sendColorData();
+        } catch (UnknownHostException e) {
+          throw new RuntimeException(e);
+        }
+        try {
+          //noinspection BusyWait
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
     }
   }
 
@@ -125,7 +143,7 @@ public class AnimationThread extends Thread {
          messageArray = shiftArrayLeft(messageArray);
        }
        if(tmp2NET.getMessage().isBlank()){
-          fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
+          fillPayloadOneColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
         }else {
          fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,
                  tmp2NET.getWidth(), tmp2NET.getHeight());
@@ -137,8 +155,7 @@ public class AnimationThread extends Thread {
     }
   }
 
-  public void fillPayloadColor(byte[] payload, int r, int g, int b,int size) {
-
+  public void fillPayloadOneColor(byte[] payload, int r, int g, int b,int size) {
     for (int i = 0; i < size; i++) {
       setPayload(payload, i+2, (byte) r, (byte) g, (byte) b);
     }
@@ -146,7 +163,7 @@ public class AnimationThread extends Thread {
 
   public void fillPayloadData(byte[] payload, int r, int g, int b, int[][] data, int width,
                               int height) {
-    //printArray(data);
+    printArray(data);
     int i = 2;
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
@@ -194,7 +211,7 @@ public class AnimationThread extends Thread {
 
     // Fill payload with all relevant information
     if (tmp2NET.getMessage().isBlank()) {
-      fillPayloadColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
+      fillPayloadOneColor(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(),tmp2NET.getSize());
     } else {
       int[][] messageArray = Letter.convertText(tmp2NET.getMessage());
       fillPayloadData(payload, tmp2NET.getR(), tmp2NET.getG(), tmp2NET.getB(), messageArray,
@@ -206,13 +223,20 @@ public class AnimationThread extends Thread {
   }
 
   public void update(String game) throws IOException {
-    sending = false;
     game = game.replace("[", "");
     game = game.replace("]", "");
     gameActive = true;
     gameValues = game.split(",");
-
   }
+
+
+  public void setColor(String colors) throws IOException {
+    colors = colors.replace("[", "");
+    colors = colors.replace("]", "");
+    colorActive = true;
+    colorValues = colors.split(",");
+  }
+
 
   public void sendGameData() throws UnknownHostException {
     while(gameActive) {
@@ -236,6 +260,30 @@ public class AnimationThread extends Thread {
     }
   }
 
+  public void sendColorData() throws UnknownHostException {
+    while(colorActive) {
+      InetAddress ia = InetAddress.getByName(tmp2NET.getIP());
+      byte[] data = new byte[tmp2NET.getSize() * 3];
+      byte[] payload = createImagePayload(data);
+      // size nicht size von Payload sondern anzahl Pixel
+      payload = fillPayloadColor(payload, colorValues, colorValues.length/3);
+      DatagramPacket dp = new DatagramPacket(payload, payload.length, ia, tmp2NET.getPort());
+      try (DatagramSocket ds = new DatagramSocket()) {
+        ds.send(dp);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      try {
+        //noinspection BusyWait
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+
+
   public byte[] fillPayloadGame(byte[] payload, String[] gameValues) {
     int newLine = gameValues.length / 5;
 
@@ -258,6 +306,15 @@ public class AnimationThread extends Thread {
         setPayloadBlue(payload, i);
         i++;
       }
+    }
+    return payload;
+  }
+
+
+  public byte[] fillPayloadColor(byte[] payload, String[] colorValues, int size) {
+
+    for (int i = 0; i < size; i++) {
+      setPayload(payload, i+2, (byte) Integer.parseInt(colorValues[i*3]), (byte) Integer.parseInt(colorValues[i*3+1]), (byte) Integer.parseInt(colorValues[i*3+2]));
     }
     return payload;
   }
@@ -300,6 +357,14 @@ public class AnimationThread extends Thread {
 
   public void setGameActive(boolean gameActive) {
     this.gameActive = gameActive;
+  }
+
+  public boolean isColorActiveActive() {
+    return colorActive;
+  }
+
+  public void setColorActive(boolean colorActive) {
+    this.colorActive = colorActive;
   }
 
   public void printGame(String[]gameValues){
