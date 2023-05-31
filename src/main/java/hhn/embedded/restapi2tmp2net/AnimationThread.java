@@ -2,11 +2,6 @@ package hhn.embedded.restapi2tmp2net;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.SimpleTimeZone;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
@@ -18,9 +13,13 @@ public class AnimationThread extends Thread {
 
   private  String[] gameValues;
 
+  private  String[] colorValues;
+
   private boolean sending = false;
 
   private boolean gameActive = false;
+
+  private boolean colorActive = false;
 
   public AnimationThread(){
     settings = new Settings();
@@ -34,8 +33,7 @@ public class AnimationThread extends Thread {
       if (sending) {
         try {
           sendMessage();
-        } catch (IOException e) {
-        } catch (InterruptedException e) {
+        }  catch (InterruptedException | IOException e) {
           Thread.currentThread().interrupt();
         }
         try {
@@ -45,9 +43,22 @@ public class AnimationThread extends Thread {
           Thread.currentThread().interrupt();
         }
       }
-      if(gameActive){
+      if (gameActive) {
         try {
           sendGameData();
+        } catch (UnknownHostException e) {
+          throw new RuntimeException(e);
+        }
+        try {
+          //noinspection BusyWait
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+      if (colorActive) {
+        try {
+          sendColorData();
         } catch (UnknownHostException e) {
           throw new RuntimeException(e);
         }
@@ -79,6 +90,30 @@ public class AnimationThread extends Thread {
   }
 
    */
+
+    public void sendColorData() throws UnknownHostException {
+      while(colorActive) {
+        Payload payload = new Payload(settings.getSize()*3);
+        // size nicht size von Payload, sondern anzahl Pixel
+        payload.fillPayloadColor(colorValues, colorValues.length/3);
+        createDatagramPacket(payload);
+      }
+    }
+
+  private void createDatagramPacket(Payload payload) throws UnknownHostException {
+    DatagramPacket dp = new DatagramPacket(payload.getPayload(), payload.getPayload().length, settings.getIp(), settings.getPort());
+    try (DatagramSocket ds = new DatagramSocket()) {
+      ds.send(dp);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    try {
+      //noinspection BusyWait
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
 
 
   public void sendMessage() throws IOException, InterruptedException {
@@ -128,7 +163,7 @@ public class AnimationThread extends Thread {
   }
 
 
-  public void update(String game) throws IOException {
+  public void update(String game)  {
     sending = false;
     game = game.replace("[", "");
     game = game.replace("]", "");
@@ -141,18 +176,7 @@ public class AnimationThread extends Thread {
     while(gameActive) {
       Payload payload = new Payload(settings.getSize());
       payload.fillPayloadGame(gameValues);
-      DatagramPacket dp = new DatagramPacket(payload.getPayload(), payload.getPayload().length, settings.getIp(), settings.getPort());
-      try (DatagramSocket ds = new DatagramSocket()) {
-        ds.send(dp);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      try {
-        //noinspection BusyWait
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
+      createDatagramPacket(payload);
       printGame(gameValues);
     }
   }
@@ -174,6 +198,13 @@ public class AnimationThread extends Thread {
     this.gameActive = gameActive;
   }
 
+  public void setColor(String colors) {
+    colors = colors.replace("[", "");
+    colors = colors.replace("]", "");
+    colorActive = true;
+    colorValues = colors.split(",");
+  }
+
   public void printGame(String[]gameValues){
     for(int i = 0 ;i <gameValues.length;i++){
         System.out.print(gameValues[i]);
@@ -193,4 +224,11 @@ public class AnimationThread extends Thread {
     this.tmp2NET = tmp2NET;
   }
 
+  public boolean isColorActive() {
+    return colorActive;
+  }
+
+  public void setColorActive(boolean colorActive) {
+    this.colorActive = colorActive;
+  }
 }

@@ -88,6 +88,14 @@ public class Payload {
         return payload;
     }
 
+    public byte[] fillPayloadColor(String[] colorValues, int size) {
+
+        for (int i = 0; i < size; i++) {
+            setPayload(payload, i+2, (byte) Integer.parseInt(colorValues[i*3]), (byte) Integer.parseInt(colorValues[i*3+1]), (byte) Integer.parseInt(colorValues[i*3+2]));
+        }
+        return payload;
+    }
+
     private void setPayload(byte[] payload, int i, final byte RED, final byte GREEN,
                             final byte BLUE) {
         payload[i * 3] = RED;

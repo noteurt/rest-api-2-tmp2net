@@ -28,16 +28,25 @@ public class RestApiController {
   @PostMapping(path = "/setMessage", consumes = {"application/json"})
   public void sendMassageUDP(@RequestBody TMP2NET tmp2) throws Exception {
     animationThread.setGameActive(false);
+    animationThread.setColorActive(false);
     animationThread.setTmp2NET(tmp2);
     animationThread.setSending(true);
+  }
 
-
+  @PostMapping(path = "/setColors", consumes = {"application/json"})
+  public void setColors(@RequestBody String colors) throws Exception {
+    animationThread.setSending(false);
+    animationThread.setGameActive(false);
+    animationThread.setColor(colors);
+    animationThread.setColorActive(true);
   }
 
   @PostMapping(path = "/setGame", consumes = {"application/json"})
     public void setGameInterface(@RequestBody String game) throws Exception {
     animationThread.setSending(false);
+    animationThread.setColorActive(false);
     animationThread.update(game);
+    animationThread.setGameActive(true);
   }
 
   @PostMapping(path = "/sendData", consumes = {"application/json"})
