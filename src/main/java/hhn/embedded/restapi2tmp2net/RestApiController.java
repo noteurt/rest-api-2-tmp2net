@@ -19,15 +19,19 @@ public class RestApiController {
     sensorData = new SensorData();
   }
 
+  @PostMapping(path = "/setSettings", consumes = {"application/json"})
+  public void setSettings(@RequestBody Settings settings) throws Exception {
+    animationThread.setSettings(settings);
+  }
+
 
   @PostMapping(path = "/setMessage", consumes = {"application/json"})
   public void sendMassageUDP(@RequestBody TMP2NET tmp2) throws Exception {
     animationThread.setGameActive(false);
-    TMP2NET tmp2NET =
-        new TMP2NET(tmp2.getMessage(), tmp2.getIP(), tmp2.getPort(), tmp2.getHeight(),
-            tmp2.getWidth(),
-            tmp2.getR(), tmp2.getG(), tmp2.getB(), tmp2.isAnimation());
-    animationThread.setTmp2NET(tmp2NET);
+    animationThread.setTmp2NET(tmp2);
+    animationThread.setSending(true);
+
+
   }
 
   @PostMapping(path = "/setGame", consumes = {"application/json"})
