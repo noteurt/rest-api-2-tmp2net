@@ -1,7 +1,11 @@
 package hhn.embedded.restapi2tmp2net;
 
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+
+
 
 public class Settings {
     private String ip = "";
@@ -12,10 +16,44 @@ public class Settings {
     private int width= 0;
 
     private int size;
-    private boolean animation = false;
 
-    public Settings(){
-        size = width*height;
+    public Settings() throws FileNotFoundException {
+
+        String relativePath = "src/main/java/hhn/embedded/restapi2tmp2net/settingsData.json";
+        String absolutePath = System.getProperty("user.dir") + "/" + relativePath;
+        String filePath = absolutePath.replace("/", "\\");
+
+        try (FileReader fileReader = new FileReader(filePath)) {
+            StringBuilder jsonBuilder = new StringBuilder();
+            int character;
+            while ((character = fileReader.read()) != -1) {
+                jsonBuilder.append((char) character);
+            }
+
+            String jsonString = jsonBuilder.toString();
+
+            jsonString = jsonString.substring(1, jsonString.length() - 1);
+            String[] fieldStrings = jsonString.split(",");
+
+            for (String fieldString : fieldStrings) {
+                String[] keyValue = fieldString.split(":");
+                String key = keyValue[0].replaceAll("\"", "").trim();
+                String value = keyValue[1].replaceAll("\"", "").trim();
+
+                switch (key) {
+                    case "ip": setIp(value); break;
+                    case "width": setWidth(Integer.parseInt(value));break;
+                    case "height": setHeight(Integer.parseInt(value)); break;
+                    case "port": setPort(Integer.parseInt(value)); break;
+                    default: break;
+                }
+            }
+
+            size = width * height;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -60,12 +98,25 @@ public class Settings {
         this.size = size;
     }
 
-    public boolean isAnimation() {
-        return animation;
-    }
 
-    public void setAnimation(boolean animation) {
-        this.animation = animation;
+    public void saveSettings(Settings settings) throws IOException {
+
+        String jsonData = "{\n" +
+                "  \"ip\" : " + "\"" + settings.ip + "\",\n" +
+                "  \"width\" : " + settings.getWidth() + ",\n" +
+                "  \"height\" : " + settings.getHeight() + ",\n" +
+                "  \"port\" : " + settings.getPort() + "\n" +
+                "}";
+
+        String relativePath = "src/main/java/hhn/embedded/restapi2tmp2net/settingsData.json";
+        String absolutePath = System.getProperty("user.dir") + "/" + relativePath;
+        String filePath = absolutePath.replace("/", "\\");
+
+
+        FileWriter fileWriter = new FileWriter(filePath);
+        fileWriter.write(jsonData);
+        fileWriter.close();
+
     }
 }
 

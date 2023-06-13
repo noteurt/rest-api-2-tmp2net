@@ -1,5 +1,6 @@
 package hhn.embedded.restapi2tmp2net;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
@@ -7,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AnimationThread extends Thread {
   //TODO Jede Methode außer einzeilige Getter und Setter sollen ein JavaDoc haben. (wegen Doku, CodeStyle und damit wir uns schnell daran erinnern, was geschrieben wurde, nachdem wir den Code über Weihnachten nicht angefasst haben) Auch interne Kommentare sind nicht schlecht, wenn es um die Behandlung von Randfällen geht.
-  private Settings settings;
+  private Settings settings = new Settings();
 
   private TMP2NET tmp2NET;
 
@@ -21,9 +22,9 @@ public class AnimationThread extends Thread {
 
   private boolean colorActive = false;
 
-  public AnimationThread(){
-    settings = new Settings();
-    tmp2NET = new TMP2NET("",0,0,0);
+
+  public AnimationThread() throws FileNotFoundException {
+    tmp2NET = new TMP2NET("",0,0,0,false);
   }
 
   @Override
@@ -122,7 +123,7 @@ public class AnimationThread extends Thread {
 
     try (DatagramSocket ds = new DatagramSocket()) {
       while (sending) {
-       if(settings.isAnimation()){
+       if(tmp2NET.isAnimation()){
          messageArray = shiftArrayLeft(messageArray);
        }
        if(tmp2NET.getMessage().isBlank()){
@@ -216,8 +217,9 @@ public class AnimationThread extends Thread {
 
   }
 
-  public void setSettings(Settings settings) {
+  public void setSettings(Settings settings) throws IOException {
     this.settings = settings;
+    settings.saveSettings(settings);
   }
 
   public void setTmp2NET(TMP2NET tmp2NET) {
@@ -230,5 +232,9 @@ public class AnimationThread extends Thread {
 
   public void setColorActive(boolean colorActive) {
     this.colorActive = colorActive;
+  }
+
+  public Settings getSettings() {
+    return settings;
   }
 }

@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.FileNotFoundException;
+
 
 @RestController
 public class RestApiController {
@@ -14,7 +16,7 @@ public class RestApiController {
 
   private final AnimationThread animationThread = new AnimationThread();
 
-  public RestApiController() {
+  public RestApiController() throws FileNotFoundException {
     animationThread.start();
     sensorData = new SensorData();
   }
@@ -22,6 +24,11 @@ public class RestApiController {
   @PostMapping(path = "/setSettings", consumes = {"application/json"})
   public void setSettings(@RequestBody Settings settings) throws Exception {
     animationThread.setSettings(settings);
+  }
+
+  @GetMapping(path = "/getSettings")
+  public Settings getSettings()  {
+    return animationThread.getSettings();
   }
 
 

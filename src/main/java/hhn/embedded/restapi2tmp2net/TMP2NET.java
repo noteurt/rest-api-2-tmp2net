@@ -12,13 +12,16 @@ public class TMP2NET implements Serializable {
   private final int g;
 
   private final int b;
+
+  private boolean animation;
   ;
 
-  public TMP2NET(String message, int r, int g, int b) {
+  public TMP2NET(String message, int r, int g, int b,boolean animation) {
     this.message = message + "";
     this.r = r;
     this.g = g;
     this.b = b;
+    this.animation = animation;
   }
 
 
@@ -38,5 +41,12 @@ public class TMP2NET implements Serializable {
     return b;
   }
 
+  public boolean isAnimation() {
+    return animation;
+  }
+
+  public void setAnimation(boolean animation) {
+    this.animation = animation;
+  }
 }
 
