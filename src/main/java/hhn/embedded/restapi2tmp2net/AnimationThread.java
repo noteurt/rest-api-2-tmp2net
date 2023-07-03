@@ -39,7 +39,7 @@ public class AnimationThread extends Thread {
         }
         try {
           //noinspection BusyWait
-          Thread.sleep(1000);
+          Thread.sleep(10000);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
@@ -222,8 +222,8 @@ public class AnimationThread extends Thread {
     settings.saveSettings(settings);
   }
 
-  public void setTmp2NET(TMP2NET tmp2NET) {
-    this.tmp2NET = tmp2NET;
+  public void setTmp2NET(TMP2NET tmp2NET) throws InterruptedException {
+      this.tmp2NET = tmp2NET;
   }
 
   public boolean isColorActive() {

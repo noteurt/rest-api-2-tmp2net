@@ -1,6 +1,6 @@
 {
   "ip" : "192.168.50.1",
-  "width" : 36,
-  "height" : 5,
-  "port" : 65506
+  "width" : 1,
+  "height" : 3,
+  "port" : 677
 }
