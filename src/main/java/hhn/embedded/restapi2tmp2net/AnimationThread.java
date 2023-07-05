@@ -39,7 +39,7 @@ public class AnimationThread extends Thread {
         }
         try {
           //noinspection BusyWait
-          Thread.sleep(10000);
+          Thread.sleep(1000);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
@@ -123,7 +123,7 @@ public class AnimationThread extends Thread {
 
     try (DatagramSocket ds = new DatagramSocket()) {
       while (sending) {
-       if(tmp2NET.isAnimation()){
+       if(tmp2NET.isAnimation()&& !tmp2NET.getMessage().isBlank()){
          messageArray = shiftArrayLeft(messageArray);
        }
        if(tmp2NET.getMessage().isBlank()){
@@ -224,6 +224,9 @@ public class AnimationThread extends Thread {
 
   public void setTmp2NET(TMP2NET tmp2NET) throws InterruptedException {
       this.tmp2NET = tmp2NET;
+    sending = false;
+    Thread.sleep(1000);
+    sending = true;
   }
 
   public boolean isColorActive() {
