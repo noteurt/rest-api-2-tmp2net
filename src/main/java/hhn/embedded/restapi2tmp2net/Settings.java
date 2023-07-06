@@ -17,18 +17,22 @@ public class Settings {
 
     private int size;
 
+    private static final String FILE_PATH = "settingsData.json";
+
     public Settings() throws FileNotFoundException {
 
         String relativePath = "src/main/java/hhn/embedded/restapi2tmp2net/settingsData.json";
         String absolutePath = System.getProperty("user.dir") + "/" + relativePath;
         String filePath = absolutePath.replace("/", "\\");
 
-        try (FileReader fileReader = new FileReader(filePath)) {
+        try (FileReader fileReader = new FileReader(FILE_PATH)) {
             StringBuilder jsonBuilder = new StringBuilder();
             int character;
             while ((character = fileReader.read()) != -1) {
                 jsonBuilder.append((char) character);
             }
+
+            fileReader.close();
 
             String jsonString = jsonBuilder.toString();
 
@@ -48,6 +52,7 @@ public class Settings {
                     default: break;
                 }
             }
+
 
             size = width * height;
 
@@ -112,8 +117,7 @@ public class Settings {
         String absolutePath = System.getProperty("user.dir") + "/" + relativePath;
         String filePath = absolutePath.replace("/", "\\");
 
-
-        FileWriter fileWriter = new FileWriter(filePath);
+        FileWriter fileWriter = new FileWriter(FILE_PATH);
         fileWriter.write(jsonData);
         fileWriter.close();
 
